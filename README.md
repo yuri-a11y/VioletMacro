@@ -34,19 +34,20 @@ Tempos padrão: toque 30 ms, espera após o 3 de 10 ms, pulo → 1 de 0 ms, bloq
 
 ## Macro S (Shidou)
 
-Segundo botão redondo no painel (**S**), com calibração própria (**⚙ calibrate S**). Sequência e tempos padrão:
+Segundo botão redondo no painel (**S**), com calibração própria (**⚙ calibrate S**). Todos os toques do S saem como **um gesto só, com cada toque numa linha do tempo**; o sistema dispara no tempo certo, sem atraso entre um passo e outro. Por isso os tempos são **do começo de um toque ao começo do próximo** (igual ao macro de PC: `3` → 10 ms → `SPACE`), e os toques podem se sobrepor.
+
+Sequência e tempos padrão:
 
 1. **swipe da câmera pra cima** (pro chute ir pra cima)
-2. **M1** segurado por **50 ms** (chute médio) → espera 40 ms
-3. **slot 3** → 10 ms → **pulo** (o 3 sai colado no pulo, igual ao macro 3; se sair na hora errada o jogo usa a variação do 3)
-4. **modo técnica** (logo após o pulo, 0 ms)
-5. espera **25 ms** (a cabeçada acontecer)
-6. **slot 3** de novo → 35 ms
-7. **slot 2 + T ao mesmo tempo** (dois dedos no mesmo gesto)
+2. **M1** segurado por **50 ms** (chute médio) → 40 ms depois de soltar
+3. **slot 3** → **+10 ms** → **pulo** (se o 3 sair na hora errada em relação ao pulo, o jogo usa a variação do 3)
+4. **+15 ms** → **modo técnica**
+5. **+25 ms** (a cabeçada acontecer) → **slot 3** de novo
+6. **+35 ms** → **slot 2 + T ao mesmo tempo**
 
 Calibração do S, na ordem: início do swipe, fim do swipe, M1, slot 3, pulo, modo técnica, slot 2, T.
 
-Todos os tempos ficam no card *Shidou macro* do app: *Hold M1*, *M1 → slot 3*, *slot 3 → jump*, *jump → technique*, *technique → slot 3 (headbutt)* e *slot 3 → 2 + T*. Duração do toque, do swipe, delay após o swipe e lockout vêm do card *Timings*. Os delays valem entre o fim de um toque e o começo do próximo; o Android soma alguns ms de latência, então ajuste de pouco em pouco.
+Todos os tempos ficam no card *Shidou macro* do app. Duração do toque, do swipe, delay após o swipe e lockout vêm do card *Timings*.
 
 ## Notas
 

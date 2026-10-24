@@ -30,7 +30,7 @@ import android.widget.TextView
 import android.widget.Toast
 
 // macro 3: swipe -> kick -> slot 3 -> jump -> slot 1
-// macro S (Shidou): camera swipe up -> hold M1 -> slot 3 + jump (tight) -> technique -> slot 3 -> slot 2 + T together
+// macro S (Shidou): camera swipe up -> hold M1 -> slot 3 + jump (tight) -> technique -> slot 3 -> slot 2 + T together (one timed gesture)
 class MacroService : AccessibilityService() {
 
     companion object {
@@ -332,19 +332,48 @@ class MacroService : AccessibilityService() {
         }
         lastFire = now
 
-        val tap = cfg.keyHold.toLong()
-        val gap = cfg.shGap.toLong()
-        val acts = listOf(
-            Act(cs, ce, cfg.swipeMs.toLong(), cfg.delayAfterSwipe.toLong()),
-            Act(m1, null, cfg.shHold.toLong(), gap),
-            Act(s3, null, tap, cfg.shDelay3Jump.toLong()),
-            Act(jp, null, tap, cfg.shDelayJumpTech.toLong()),
-            Act(tech, null, tap, cfg.shDelayTech3.toLong()),
-            Act(s3, null, tap, cfg.shDelay3Last.toLong()),
-            Act(s2, null, tap, 0L, tk)
-        )
+        // One gesture with every stroke on a timeline (ms from the start). The system fires
+        // them on schedule, so the delays are start-to-start like the PC macro
+        // (3 -> 10 ms -> SPACE) and there is no per-step callback lag.
+        val tap = maxOf(1L, cfg.keyHold.toLong())
+        val strokes = ArrayList<GestureDescription.StrokeDescription>()
+        fun stroke(from: PointF, dest: PointF?, start: Long, dur: Long) {
+            val path = Path().apply {
+                moveTo(from.x * w, from.y * h)
+                if (dest != null) lineTo(dest.x * w, dest.y * h)
+            }
+            strokes.add(GestureDescription.StrokeDescription(path, start, maxOf(1L, dur)))
+        }
+        var t = 0L
+        stroke(cs, ce, t, cfg.swipeMs.toLong())
+        t += cfg.swipeMs + cfg.delayAfterSwipe
+        stroke(m1, null, t, cfg.shHold.toLong())
+        t += cfg.shHold + cfg.shGap
+        val s3First = t
+        stroke(s3, null, t, tap)
+        t += cfg.shDelay3Jump
+        stroke(jp, null, t, tap)
+        t += cfg.shDelayJumpTech
+        stroke(tech, null, t, tap)
+        t += cfg.shDelayTech3
+        t = maxOf(t, s3First + tap + 1)   // same button: first tap must end before the second starts
+        stroke(s3, null, t, tap)
+        t += cfg.shDelay3Last
+        stroke(s2, null, t, tap)
+        stroke(tk, null, t, tap)
+
         busy = true
-        handler.post { step(acts, 0, w, h) }
+        val ok = try {
+            val gb = GestureDescription.Builder()
+            for (st in strokes) gb.addStroke(st)
+            dispatchGesture(gb.build(), object : GestureResultCallback() {
+                override fun onCompleted(d: GestureDescription?) { busy = false }
+                override fun onCancelled(d: GestureDescription?) { busy = false }
+            }, null)
+        } catch (e: IllegalArgumentException) {
+            false
+        }
+        if (!ok) busy = false
         count++
         refreshLook()
     }

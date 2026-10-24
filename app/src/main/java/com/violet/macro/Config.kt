@@ -78,9 +78,9 @@ class Config(ctx: Context) {
         get() = sp.getInt("shDelay3Jump", 10)
         set(v) { sp.edit().putInt("shDelay3Jump", v).apply() }
 
-    // Shidou: jump -> technique mode, wait for the headbutt, last slot 3 -> 2 + T
+    // Shidou: start-to-start times (ms): jump -> technique, technique -> slot 3 (headbutt), slot 3 -> 2 + T
     var shDelayJumpTech: Int
-        get() = sp.getInt("shDelayJumpTech", 0)
+        get() = sp.getInt("shDelayJumpTech", 15)
         set(v) { sp.edit().putInt("shDelayJumpTech", v).apply() }
 
     var shDelayTech3: Int
