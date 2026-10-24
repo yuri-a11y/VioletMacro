@@ -244,24 +244,21 @@ class MacroService : AccessibilityService() {
         counterView?.text = count.toString()
     }
 
-    private fun tap(p: PointF, w: Int, h: Int, start: Long, hold: Long) =
-        GestureDescription.StrokeDescription(
-            Path().apply { moveTo(p.x * w, p.y * h) },
-            start,
-            maxOf(1L, hold)
-        )
-
     private fun fire() {
         if (!active || busy) return
         val now = SystemClock.uptimeMillis()
         if (now - lastFire < cfg.lockout) return
 
         val (w, h) = screenSize()
+        val cs = cfg.point("camStart")
+        val ce = cfg.point("camEnd")
         val kk = cfg.point("kick")
         val s3 = cfg.point("slot3")
         val jp = cfg.point("jump")
         val s1 = cfg.point("slot1")
-        if (jp == null || s1 == null || (cfg.tapSlot3 && s3 == null) || (cfg.kickFirst && kk == null)) {
+        if (jp == null || s1 == null || (cfg.tapSlot3 && s3 == null) || (cfg.kickFirst && kk == null) ||
+            (cfg.cameraSwipe && (cs == null || ce == null))
+        ) {
             toast("Calibrate first (⚙ calibrate)")
             return
         }
@@ -272,24 +269,32 @@ class MacroService : AccessibilityService() {
         lastFire = now
 
         val hold = cfg.keyHold.toLong()
-        val pts = ArrayList<PointF>()
-        val gaps = ArrayList<Long>()
-        if (cfg.kickFirst && kk != null) { pts.add(kk); gaps.add(cfg.delayAfterKick.toLong()) }
-        if (cfg.tapSlot3 && s3 != null) { pts.add(s3); gaps.add(cfg.delayAfter3.toLong()) }
-        pts.add(jp); gaps.add(cfg.delayJumpTo1.toLong())
-        pts.add(s1); gaps.add(0L)
-        val lead = if (cfg.tapSlot3 || cfg.kickFirst) 0L else cfg.delayAfter3.toLong()
+        val acts = ArrayList<Act>()
+        if (cfg.cameraSwipe && cs != null && ce != null) acts.add(Act(cs, ce, cfg.swipeMs.toLong(), cfg.delayAfterSwipe.toLong()))
+        if (cfg.kickFirst && kk != null) acts.add(Act(kk, null, hold, cfg.delayAfterKick.toLong()))
+        if (cfg.tapSlot3 && s3 != null) acts.add(Act(s3, null, hold, cfg.delayAfter3.toLong()))
+        acts.add(Act(jp, null, hold, cfg.delayJumpTo1.toLong()))
+        acts.add(Act(s1, null, hold, 0L))
+        val lead = if (cfg.cameraSwipe || cfg.kickFirst || cfg.tapSlot3) 0L else cfg.delayAfter3.toLong()
         busy = true
-        handler.postDelayed({ step(pts, gaps, 0, w, h, hold) }, lead)
+        handler.postDelayed({ step(acts, 0, w, h) }, lead)
         count++
         refreshLook()
     }
 
-    private fun step(pts: List<PointF>, gaps: List<Long>, i: Int, w: Int, h: Int, hold: Long) {
-        val g = GestureDescription.Builder().addStroke(tap(pts[i], w, h, 0L, hold)).build()
+    private fun step(acts: List<Act>, i: Int, w: Int, h: Int) {
+        val a = acts[i]
+        val end = a.to
+        val path = Path().apply {
+            moveTo(a.from.x * w, a.from.y * h)
+            if (end != null) lineTo(end.x * w, end.y * h)
+        }
+        val g = GestureDescription.Builder()
+            .addStroke(GestureDescription.StrokeDescription(path, 0L, maxOf(1L, a.dur)))
+            .build()
         val ok = dispatchGesture(g, object : GestureResultCallback() {
             override fun onCompleted(d: GestureDescription?) {
-                if (i + 1 < pts.size) handler.postDelayed({ step(pts, gaps, i + 1, w, h, hold) }, gaps[i])
+                if (i + 1 < acts.size) handler.postDelayed({ step(acts, i + 1, w, h) }, a.gap)
                 else busy = false
             }
             override fun onCancelled(d: GestureDescription?) { busy = false }
@@ -301,6 +306,10 @@ class MacroService : AccessibilityService() {
         if (calib != null) return
         val labels = ArrayList<String>()
         val keys = ArrayList<String>()
+        if (cfg.cameraSwipe) {
+            labels.add("where the camera swipe STARTS"); keys.add("camStart")
+            labels.add("where the camera swipe ENDS"); keys.add("camEnd")
+        }
         if (cfg.kickFirst) { labels.add("the KICK button"); keys.add("kick") }
         if (cfg.tapSlot3) { labels.add("SLOT 3"); keys.add("slot3") }
         labels.add("the JUMP button"); keys.add("jump")
@@ -337,6 +346,9 @@ class MacroService : AccessibilityService() {
         try { wm.removeView(v) } catch (_: Exception) {}
     }
 }
+
+// one tap (to == null) or one swipe
+private class Act(val from: PointF, val to: PointF?, val dur: Long, val gap: Long)
 
 // calibration overlay
 private class CalibView(

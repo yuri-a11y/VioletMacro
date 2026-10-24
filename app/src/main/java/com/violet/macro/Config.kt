@@ -44,6 +44,18 @@ class Config(ctx: Context) {
         get() = sp.getBoolean("tapSlot3", true)
         set(v) { sp.edit().putBoolean("tapSlot3", v).apply() }
 
+    var cameraSwipe: Boolean
+        get() = sp.getBoolean("cameraSwipe", true)
+        set(v) { sp.edit().putBoolean("cameraSwipe", v).apply() }
+
+    var swipeMs: Int
+        get() = sp.getInt("swipeMs", 120)
+        set(v) { sp.edit().putInt("swipeMs", v).apply() }
+
+    var delayAfterSwipe: Int
+        get() = sp.getInt("delayAfterSwipe", 60)
+        set(v) { sp.edit().putInt("delayAfterSwipe", v).apply() }
+
     var kickFirst: Boolean
         get() = sp.getBoolean("kickFirst", true)
         set(v) { sp.edit().putBoolean("kickFirst", v).apply() }

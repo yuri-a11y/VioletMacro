@@ -24,7 +24,7 @@ Funciona por cima do Roblox / Delta (é só um app de acessibilidade tocando na 
 
 ## Usar
 
-1. No painel, toque em **⚙ calibrar** e toque, na ordem pedida: **botão de chute**, **slot 3**, **botão de pulo**, **slot 1**. Salva sozinho.
+1. No painel, toque em **⚙ calibrar** e toque, na ordem pedida: **onde o swipe da câmera começa**, **onde termina**, **botão de chute**, **slot 3**, **botão de pulo**, **slot 1**. Salva sozinho.
 2. Ligue o switch **ON**.
 3. Tocar no botão redondo **3** do painel dispara a sequência. Arraste o painel pelos três pontinhos.
 
