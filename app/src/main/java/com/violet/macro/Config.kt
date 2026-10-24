@@ -66,7 +66,7 @@ class Config(ctx: Context) {
 
     // Shidou macro: how long to hold M1, and the pause between steps
     var shHold: Int
-        get() = sp.getInt("shHold", 500)
+        get() = sp.getInt("shHold", 50)
         set(v) { sp.edit().putInt("shHold", v).apply() }
 
     var shGap: Int
@@ -77,6 +77,19 @@ class Config(ctx: Context) {
     var shDelay3Jump: Int
         get() = sp.getInt("shDelay3Jump", 10)
         set(v) { sp.edit().putInt("shDelay3Jump", v).apply() }
+
+    // Shidou: jump -> technique mode, wait for the headbutt, last slot 3 -> 2 + T
+    var shDelayJumpTech: Int
+        get() = sp.getInt("shDelayJumpTech", 0)
+        set(v) { sp.edit().putInt("shDelayJumpTech", v).apply() }
+
+    var shDelayTech3: Int
+        get() = sp.getInt("shDelayTech3", 25)
+        set(v) { sp.edit().putInt("shDelayTech3", v).apply() }
+
+    var shDelay3Last: Int
+        get() = sp.getInt("shDelay3Last", 35)
+        set(v) { sp.edit().putInt("shDelay3Last", v).apply() }
 
     var landscape: Boolean
         get() = sp.getBoolean("landscape", true)

@@ -338,9 +338,9 @@ class MacroService : AccessibilityService() {
             Act(cs, ce, cfg.swipeMs.toLong(), cfg.delayAfterSwipe.toLong()),
             Act(m1, null, cfg.shHold.toLong(), gap),
             Act(s3, null, tap, cfg.shDelay3Jump.toLong()),
-            Act(jp, null, tap, gap),
-            Act(tech, null, tap, gap),
-            Act(s3, null, tap, gap),
+            Act(jp, null, tap, cfg.shDelayJumpTech.toLong()),
+            Act(tech, null, tap, cfg.shDelayTech3.toLong()),
+            Act(s3, null, tap, cfg.shDelay3Last.toLong()),
             Act(s2, null, tap, 0L, tk)
         )
         busy = true

@@ -180,9 +180,12 @@ class MainActivity : Activity() {
         cs.addView(label("swipe cam up → hold M1 → slot 3 → jump → technique → slot 3 → slot 2 + T", 11f, VC.DIM).apply {
             setPadding(0, dp(4), 0, 0)
         })
-        seek(cs, "Hold M1", 100, 2000, { cfg.shHold }, { cfg.shHold = it })
+        seek(cs, "Hold M1 (medium kick)", 10, 1000, { cfg.shHold }, { cfg.shHold = it })
+        seek(cs, "Delay M1 → slot 3", 0, 300, { cfg.shGap }, { cfg.shGap = it })
         seek(cs, "Delay slot 3 → jump", 0, 100, { cfg.shDelay3Jump }, { cfg.shDelay3Jump = it })
-        seek(cs, "Gap between other steps", 0, 300, { cfg.shGap }, { cfg.shGap = it })
+        seek(cs, "Delay jump → technique mode", 0, 100, { cfg.shDelayJumpTech }, { cfg.shDelayJumpTech = it })
+        seek(cs, "Delay technique → slot 3 (headbutt)", 0, 200, { cfg.shDelayTech3 }, { cfg.shDelayTech3 = it })
+        seek(cs, "Delay slot 3 → 2 + T", 0, 200, { cfg.shDelay3Last }, { cfg.shDelay3Last = it })
         cs.addView(label("Tap duration, swipe duration, delay after swipe and lockout come from the Timings card above.", 11f, VC.DIM).apply {
             setPadding(0, dp(10), 0, 0)
         })
