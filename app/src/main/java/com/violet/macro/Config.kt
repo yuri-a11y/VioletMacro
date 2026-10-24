@@ -5,7 +5,6 @@ import android.content.SharedPreferences
 import android.graphics.Color
 import android.graphics.PointF
 
-/** Paleta violeta do app (mesma do macro de PC). */
 object VC {
     val BG = Color.rgb(13, 9, 28)
     val CARD = Color.rgb(28, 20, 52)
@@ -20,7 +19,7 @@ object VC {
     val OFF = Color.rgb(44, 34, 74)
 }
 
-/** Configuração persistida. Valores de tempo em ms; posições guardadas como fração da tela (0..1). */
+// times in ms, points stored as screen fractions
 class Config(ctx: Context) {
     private val sp: SharedPreferences =
         ctx.applicationContext.getSharedPreferences("violet_macro", Context.MODE_PRIVATE)
@@ -41,12 +40,10 @@ class Config(ctx: Context) {
         get() = sp.getInt("lockout", 250)
         set(v) { sp.edit().putInt("lockout", v).apply() }
 
-    /** true = o botão também toca no slot 3 (o gatilho do PC era apertar o 3). */
     var tapSlot3: Boolean
         get() = sp.getBoolean("tapSlot3", true)
         set(v) { sp.edit().putBoolean("tapSlot3", v).apply() }
 
-    /** Orientação em que as posições foram calibradas. */
     var landscape: Boolean
         get() = sp.getBoolean("landscape", true)
         set(v) { sp.edit().putBoolean("landscape", v).apply() }

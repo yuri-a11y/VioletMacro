@@ -122,7 +122,6 @@ class MainActivity : Activity() {
         root.addView(label("VIOLET MACRO", 24f, VC.TEXT, true))
         root.addView(label("Roblox 3-Trigger  •  Android", 12f, VC.DIM))
 
-        // status + ações
         val c1 = card()
         status = label("", 18f, VC.ORANGE, true)
         c1.addView(status)
@@ -140,7 +139,6 @@ class MainActivity : Activity() {
         })
         root.addView(c1)
 
-        // ajustes
         val c2 = card()
         c2.addView(label("Tempos  (iguais aos do macro de PC)", 14f, VC.TEXT, true))
         seek(c2, "Duração do toque", 1, 100, { cfg.keyHold }, { cfg.keyHold = it })
@@ -158,7 +156,6 @@ class MainActivity : Activity() {
         c2.addView(label("Se mudar essa opção, calibre de novo.", 11f, VC.DIM).apply { setPadding(0, dp(4), 0, 0) })
         root.addView(c2)
 
-        // como usar
         val c3 = card()
         c3.addView(label("Como usar", 14f, VC.TEXT, true))
         c3.addView(label(

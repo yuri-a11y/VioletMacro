@@ -26,11 +26,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 
-/**
- * Serviço de acessibilidade: desenha o painel flutuante (switch ON/OFF + botão gatilho)
- * e executa os toques. Equivale ao "3 -> SPACE + 1" do macro de PC:
- *   [toque no slot 3] -> espera -> toque no PULO -> espera -> toque no slot 1
- */
+// slot 3 -> jump -> slot 1
 class MacroService : AccessibilityService() {
 
     companion object {
@@ -52,8 +48,6 @@ class MacroService : AccessibilityService() {
     private var lastFire = 0L
 
     val panelVisible: Boolean get() = panel != null
-
-    // ---------------- ciclo de vida ----------------
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -82,8 +76,6 @@ class MacroService : AccessibilityService() {
         instance = null
     }
 
-    // ---------------- helpers ----------------
-
     private fun dp(v: Int) = (v * resources.displayMetrics.density + 0.5f).toInt()
 
     private fun toast(msg: String) = Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
@@ -110,8 +102,6 @@ class MacroService : AccessibilityService() {
     private fun overlayParams(w: Int, h: Int, flags: Int) = WindowManager.LayoutParams(
         w, h, WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY, flags, PixelFormat.TRANSLUCENT
     ).apply { gravity = Gravity.TOP or Gravity.START }
-
-    // ---------------- painel flutuante ----------------
 
     fun setPanelShown(show: Boolean) {
         cfg.panelShown = show
@@ -178,7 +168,7 @@ class MacroService : AccessibilityService() {
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
         ).apply { x = cfg.panelX; y = cfg.panelY }
 
-        // arrastar pelo "• • •"
+        // drag
         var dx = 0f
         var dy = 0f
         var ox = 0
@@ -196,7 +186,7 @@ class MacroService : AccessibilityService() {
             true
         }
 
-        // gatilho: dispara no instante em que o dedo encosta
+        // fire on touch down
         fb.setOnTouchListener { v, e ->
             when (e.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
@@ -245,8 +235,6 @@ class MacroService : AccessibilityService() {
         counterView?.text = count.toString()
     }
 
-    // ---------------- o macro ----------------
-
     private fun tap(p: PointF, w: Int, h: Int, start: Long, hold: Long) =
         GestureDescription.StrokeDescription(
             Path().apply { moveTo(p.x * w, p.y * h) },
@@ -290,8 +278,6 @@ class MacroService : AccessibilityService() {
         refreshLook()
     }
 
-    // ---------------- calibração ----------------
-
     fun startCalibration() {
         if (calib != null) return
         val labels = ArrayList<String>()
@@ -332,7 +318,7 @@ class MacroService : AccessibilityService() {
     }
 }
 
-/** Tela cheia translúcida que captura os 3 toques de calibração (coordenadas reais da tela). */
+// calibration overlay
 private class CalibView(
     ctx: Context,
     private val labels: List<String>,
