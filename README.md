@@ -32,6 +32,21 @@ Funciona por cima do Roblox / Delta (é só um app de acessibilidade tocando na 
 
 Tempos padrão: toque 30 ms, espera após o 3 de 10 ms, pulo → 1 de 0 ms, bloqueio de 250 ms. Se o jogo "comer" algum toque, aumente a duração do toque (40–60 ms). Se você prefere tocar no slot 3 com o dedo e só quer pulo + slot 1 no botão, desligue **Botão também toca no slot 3** e recalibre.
 
+## Macro S (Shidou)
+
+Segundo botão redondo no painel (**S**), com calibração própria (**⚙ calibrate S**). Sequência:
+
+1. segura o **M1** (padrão 500 ms, ajustável no app em *Shidou macro → Hold M1*)
+2. **pulo**
+3. **slot 3**
+4. **modo técnica**
+5. **slot 3** de novo
+6. **slot 2 + T ao mesmo tempo** (dois dedos no mesmo gesto)
+
+Calibração do S, na ordem: M1, pulo, slot 3, modo técnica, slot 2, T.
+
+Ajustes: *Hold M1* (100–2000 ms) e *Gap between steps* (0–300 ms, pausa entre cada passo). A duração do toque e o lockout vêm do card *Timings*. Se o jogo comer o 3 logo depois do pulo, aumente o gap.
+
 ## Notas
 
 - Calibre na mesma orientação em que vai jogar. Se mudar de orientação, o app avisa pra recalibrar.

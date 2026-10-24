@@ -64,6 +64,15 @@ class Config(ctx: Context) {
         get() = sp.getInt("delayAfterKick", 150)
         set(v) { sp.edit().putInt("delayAfterKick", v).apply() }
 
+    // Shidou macro: how long to hold M1, and the pause between steps
+    var shHold: Int
+        get() = sp.getInt("shHold", 500)
+        set(v) { sp.edit().putInt("shHold", v).apply() }
+
+    var shGap: Int
+        get() = sp.getInt("shGap", 40)
+        set(v) { sp.edit().putInt("shGap", v).apply() }
+
     var landscape: Boolean
         get() = sp.getBoolean("landscape", true)
         set(v) { sp.edit().putBoolean("landscape", v).apply() }
