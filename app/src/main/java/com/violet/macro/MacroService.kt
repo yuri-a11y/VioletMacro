@@ -29,8 +29,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 
-// macro 3: swipe -> kick -> slot 3 -> jump -> slot 1
-// macro S (Shidou): camera swipe up -> hold M1 -> slot 3 + jump (tight) -> technique -> slot 3 -> slot 2 + T together (one timed gesture)
+// slot 3 -> jump -> slot 1
 class MacroService : AccessibilityService() {
 
     companion object {
@@ -44,7 +43,6 @@ class MacroService : AccessibilityService() {
     private var panel: LinearLayout? = null
     private var toggleView: TextView? = null
     private var fireView: TextView? = null
-    private var fire2View: TextView? = null
     private var counterView: TextView? = null
     private var calib: CalibView? = null
 
@@ -140,24 +138,13 @@ class MacroService : AccessibilityService() {
             setPadding(dp(20), dp(6), dp(20), dp(6))
             setOnClickListener { setActive(!active) }
         }
-        fun roundBtn(t: String) = TextView(this).apply {
-            text = t
-            textSize = 24f
+        val fb = TextView(this).apply {
+            text = "3"
+            textSize = 26f
             typeface = Typeface.DEFAULT_BOLD
             gravity = Gravity.CENTER
             setTextColor(Color.WHITE)
-            layoutParams = LinearLayout.LayoutParams(dp(60), dp(60)).apply {
-                leftMargin = dp(4); rightMargin = dp(4)
-            }
-        }
-        val fb = roundBtn("3")
-        val fb2 = roundBtn("S")
-        val btnRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER
-            setPadding(0, dp(8), 0, 0)
-            addView(fb)
-            addView(fb2)
+            layoutParams = LinearLayout.LayoutParams(dp(68), dp(68)).apply { topMargin = dp(8) }
         }
         val ct = TextView(this).apply {
             text = "0"
@@ -166,25 +153,19 @@ class MacroService : AccessibilityService() {
             gravity = Gravity.CENTER
             setPadding(0, dp(4), 0, 0)
         }
-        fun gearLink(t: String, onTap: () -> Unit) = TextView(this).apply {
-            text = t
+        val gear = TextView(this).apply {
+            text = "⚙ calibrate"
             textSize = 11f
             setTextColor(VC.LIGHT)
             gravity = Gravity.CENTER
-            setPadding(dp(8), dp(6), dp(8), dp(2))
-            setOnClickListener { onTap() }
-        }
-        val gearRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER
-            addView(gearLink("⚙ calibrate 3") { startCalibration(false) })
-            addView(gearLink("⚙ calibrate S") { startCalibration(true) })
+            setPadding(dp(10), dp(6), dp(10), dp(2))
+            setOnClickListener { startCalibration() }
         }
         root.addView(grip)
         root.addView(tg)
-        root.addView(btnRow)
+        root.addView(fb)
         root.addView(ct)
-        root.addView(gearRow)
+        root.addView(gear)
 
         val lp = overlayParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
@@ -213,29 +194,24 @@ class MacroService : AccessibilityService() {
         }
 
         // fire on release
-        fun bindFire(btn: View, action: () -> Unit) {
-            btn.setOnTouchListener { v, e ->
-                when (e.actionMasked) {
-                    MotionEvent.ACTION_DOWN ->
-                        v.animate().scaleX(0.9f).scaleY(0.9f).setDuration(60).start()
-                    MotionEvent.ACTION_UP -> {
-                        v.animate().scaleX(1f).scaleY(1f).setDuration(90).start()
-                        action()
-                    }
-                    MotionEvent.ACTION_CANCEL ->
-                        v.animate().scaleX(1f).scaleY(1f).setDuration(90).start()
+        fb.setOnTouchListener { v, e ->
+            when (e.actionMasked) {
+                MotionEvent.ACTION_DOWN ->
+                    v.animate().scaleX(0.9f).scaleY(0.9f).setDuration(60).start()
+                MotionEvent.ACTION_UP -> {
+                    v.animate().scaleX(1f).scaleY(1f).setDuration(90).start()
+                    fire()
                 }
-                true
+                MotionEvent.ACTION_CANCEL ->
+                    v.animate().scaleX(1f).scaleY(1f).setDuration(90).start()
             }
+            true
         }
-        bindFire(fb) { fire() }
-        bindFire(fb2) { fireShidou() }
 
         wm.addView(root, lp)
         panel = root
         toggleView = tg
         fireView = fb
-        fire2View = fb2
         counterView = ct
         refreshLook()
     }
@@ -246,7 +222,6 @@ class MacroService : AccessibilityService() {
         panel = null
         toggleView = null
         fireView = null
-        fire2View = null
         counterView = null
     }
 
@@ -262,7 +237,7 @@ class MacroService : AccessibilityService() {
             setTextColor(if (active) Color.WHITE else VC.DIM)
             background = pill(if (active) VC.DEEP else VC.OFF, 16, if (active) VC.LIGHT else Color.rgb(70, 56, 112))
         }
-        for (b in listOf(fireView, fire2View)) b?.apply {
+        fireView?.apply {
             background = oval(if (active) VC.PURPLE else VC.OFF)
             alpha = if (active) 1f else 0.5f
         }
@@ -307,77 +282,6 @@ class MacroService : AccessibilityService() {
         refreshLook()
     }
 
-    // Shidou: camera swipe up -> hold M1 -> slot 3 + jump (tight) -> technique mode -> slot 3 -> slot 2 + T together
-    private fun fireShidou() {
-        if (!active || busy) return
-        val now = SystemClock.uptimeMillis()
-        if (now - lastFire < cfg.lockout) return
-
-        val (w, h) = screenSize()
-        val cs = cfg.point("shCamStart")
-        val ce = cfg.point("shCamEnd")
-        val m1 = cfg.point("shM1")
-        val s3 = cfg.point("shS3")
-        val jp = cfg.point("shJump")
-        val tech = cfg.point("shTech")
-        val s2 = cfg.point("shS2")
-        val tk = cfg.point("shT")
-        if (cs == null || ce == null || m1 == null || s3 == null || jp == null || tech == null || s2 == null || tk == null) {
-            toast("Calibrate S first (⚙ calibrate S)")
-            return
-        }
-        if (cfg.landscape != (w > h)) {
-            toast("Orientation changed, recalibrate")
-            return
-        }
-        lastFire = now
-
-        // One gesture with every stroke on a timeline (ms from the start). The system fires
-        // them on schedule, so the delays are start-to-start like the PC macro
-        // (3 -> 10 ms -> SPACE) and there is no per-step callback lag.
-        val tap = maxOf(1L, cfg.keyHold.toLong())
-        val strokes = ArrayList<GestureDescription.StrokeDescription>()
-        fun stroke(from: PointF, dest: PointF?, start: Long, dur: Long) {
-            val path = Path().apply {
-                moveTo(from.x * w, from.y * h)
-                if (dest != null) lineTo(dest.x * w, dest.y * h)
-            }
-            strokes.add(GestureDescription.StrokeDescription(path, start, maxOf(1L, dur)))
-        }
-        var t = 0L
-        stroke(cs, ce, t, cfg.swipeMs.toLong())
-        t += cfg.swipeMs + cfg.delayAfterSwipe
-        stroke(m1, null, t, cfg.shHold.toLong())
-        t += cfg.shHold + cfg.shGap
-        val s3First = t
-        stroke(s3, null, t, tap)
-        t += cfg.shDelay3Jump
-        stroke(jp, null, t, tap)
-        t += cfg.shDelayJumpTech
-        stroke(tech, null, t, tap)
-        t += cfg.shDelayTech3
-        t = maxOf(t, s3First + tap + 1)   // same button: first tap must end before the second starts
-        stroke(s3, null, t, tap)
-        t += cfg.shDelay3Last
-        stroke(s2, null, t, tap)
-        stroke(tk, null, t, tap)
-
-        busy = true
-        val ok = try {
-            val gb = GestureDescription.Builder()
-            for (st in strokes) gb.addStroke(st)
-            dispatchGesture(gb.build(), object : GestureResultCallback() {
-                override fun onCompleted(d: GestureDescription?) { busy = false }
-                override fun onCancelled(d: GestureDescription?) { busy = false }
-            }, null)
-        } catch (e: IllegalArgumentException) {
-            false
-        }
-        if (!ok) busy = false
-        count++
-        refreshLook()
-    }
-
     private fun step(acts: List<Act>, i: Int, w: Int, h: Int) {
         val a = acts[i]
         val end = a.to
@@ -385,14 +289,9 @@ class MacroService : AccessibilityService() {
             moveTo(a.from.x * w, a.from.y * h)
             if (end != null) lineTo(end.x * w, end.y * h)
         }
-        val gb = GestureDescription.Builder()
+        val g = GestureDescription.Builder()
             .addStroke(GestureDescription.StrokeDescription(path, 0L, maxOf(1L, a.dur)))
-        val ex = a.extra
-        if (ex != null) {
-            val path2 = Path().apply { moveTo(ex.x * w, ex.y * h) }
-            gb.addStroke(GestureDescription.StrokeDescription(path2, 0L, maxOf(1L, a.dur)))
-        }
-        val g = gb.build()
+            .build()
         val ok = dispatchGesture(g, object : GestureResultCallback() {
             override fun onCompleted(d: GestureDescription?) {
                 if (i + 1 < acts.size) handler.postDelayed({ step(acts, i + 1, w, h) }, a.gap)
@@ -403,29 +302,18 @@ class MacroService : AccessibilityService() {
         if (!ok) busy = false
     }
 
-    fun startCalibration(shidou: Boolean = false) {
+    fun startCalibration() {
         if (calib != null) return
         val labels = ArrayList<String>()
         val keys = ArrayList<String>()
-        if (shidou) {
-            labels.add("where the camera swipe (UP) STARTS"); keys.add("shCamStart")
-            labels.add("where the camera swipe (UP) ENDS"); keys.add("shCamEnd")
-            labels.add("the M1 button"); keys.add("shM1")
-            labels.add("SLOT 3"); keys.add("shS3")
-            labels.add("the JUMP button"); keys.add("shJump")
-            labels.add("the TECHNIQUE MODE button"); keys.add("shTech")
-            labels.add("SLOT 2"); keys.add("shS2")
-            labels.add("the T button"); keys.add("shT")
-        } else {
-            if (cfg.cameraSwipe) {
-                labels.add("where the camera swipe STARTS"); keys.add("camStart")
-                labels.add("where the camera swipe ENDS"); keys.add("camEnd")
-            }
-            if (cfg.kickFirst) { labels.add("the KICK button"); keys.add("kick") }
-            if (cfg.tapSlot3) { labels.add("SLOT 3"); keys.add("slot3") }
-            labels.add("the JUMP button"); keys.add("jump")
-            labels.add("SLOT 1"); keys.add("slot1")
+        if (cfg.cameraSwipe) {
+            labels.add("where the camera swipe STARTS"); keys.add("camStart")
+            labels.add("where the camera swipe ENDS"); keys.add("camEnd")
         }
+        if (cfg.kickFirst) { labels.add("the KICK button"); keys.add("kick") }
+        if (cfg.tapSlot3) { labels.add("SLOT 3"); keys.add("slot3") }
+        labels.add("the JUMP button"); keys.add("jump")
+        labels.add("SLOT 1"); keys.add("slot1")
 
         val view = CalibView(
             this, labels,
@@ -459,8 +347,8 @@ class MacroService : AccessibilityService() {
     }
 }
 
-// one tap (to == null) or one swipe; extra = a second finger tapping at the same time
-private class Act(val from: PointF, val to: PointF?, val dur: Long, val gap: Long, val extra: PointF? = null)
+// one tap (to == null) or one swipe
+private class Act(val from: PointF, val to: PointF?, val dur: Long, val gap: Long)
 
 // calibration overlay
 private class CalibView(
