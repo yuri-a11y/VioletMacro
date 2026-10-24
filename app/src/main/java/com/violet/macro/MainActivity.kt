@@ -144,7 +144,16 @@ class MainActivity : Activity() {
         seek(c2, "Tap duration", 1, 100, { cfg.keyHold }, { cfg.keyHold = it })
         seek(c2, "Delay after slot 3", 0, 100, { cfg.delayAfter3 }, { cfg.delayAfter3 = it })
         seek(c2, "Delay jump → slot 1", 0, 100, { cfg.delayJumpTo1 }, { cfg.delayJumpTo1 = it })
+        seek(c2, "Delay after kick", 0, 1000, { cfg.delayAfterKick }, { cfg.delayAfterKick = it })
         seek(c2, "Lockout", 50, 1000, { cfg.lockout }, { cfg.lockout = it })
+        val swKick = Switch(this).apply {
+            text = "Kick up first"
+            setTextColor(VC.TEXT)
+            isChecked = cfg.kickFirst
+            setPadding(0, dp(16), 0, 0)
+            setOnCheckedChangeListener { _, on -> cfg.kickFirst = on }
+        }
+        c2.addView(swKick)
         val sw = Switch(this).apply {
             text = "Button also taps slot 3"
             setTextColor(VC.TEXT)
@@ -161,8 +170,8 @@ class MainActivity : Activity() {
         c3.addView(label(
             "1. Enable the service (button above).\n" +
                 "2. Open Roblox in landscape.\n" +
-                "3. On the panel tap ⚙ calibrate, then tap slot 3, the jump button and slot 1, in that order.\n" +
-                "4. Switch ON. Tapping the \"3\" button runs slot 3 → jump → slot 1.\n" +
+                "3. On the panel tap ⚙ calibrate, then tap the kick button, slot 3, the jump button and slot 1, in that order.\n" +
+                "4. Switch ON. Tapping the \"3\" button runs kick → slot 3 → jump → slot 1.\n" +
                 "5. Drag the panel by the three dots.",
             12f, VC.DIM
         ).apply { setPadding(0, dp(8), 0, 0); setLineSpacing(0f, 1.2f) })

@@ -44,6 +44,14 @@ class Config(ctx: Context) {
         get() = sp.getBoolean("tapSlot3", true)
         set(v) { sp.edit().putBoolean("tapSlot3", v).apply() }
 
+    var kickFirst: Boolean
+        get() = sp.getBoolean("kickFirst", true)
+        set(v) { sp.edit().putBoolean("kickFirst", v).apply() }
+
+    var delayAfterKick: Int
+        get() = sp.getInt("delayAfterKick", 150)
+        set(v) { sp.edit().putInt("delayAfterKick", v).apply() }
+
     var landscape: Boolean
         get() = sp.getBoolean("landscape", true)
         set(v) { sp.edit().putBoolean("landscape", v).apply() }
