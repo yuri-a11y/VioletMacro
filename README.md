@@ -30,7 +30,7 @@ Funciona por cima do Roblox / Delta (é só um app de acessibilidade tocando na 
 
 ## Ajustes (no app)
 
-Os tempos vêm iguais ao macro de PC: toque 15 ms, espera após o 3 de 10 ms, pulo → 1 de 0 ms, bloqueio de 250 ms. Se o jogo "comer" algum toque, aumente a duração do toque (20–30 ms). Se você prefere tocar no slot 3 com o dedo e só quer pulo + slot 1 no botão, desligue **Botão também toca no slot 3** e recalibre.
+Tempos padrão: toque 30 ms, espera após o 3 de 10 ms, pulo → 1 de 0 ms, bloqueio de 250 ms. Se o jogo "comer" algum toque, aumente a duração do toque (40–60 ms). Se você prefere tocar no slot 3 com o dedo e só quer pulo + slot 1 no botão, desligue **Botão também toca no slot 3** e recalibre.
 
 ## Notas
 

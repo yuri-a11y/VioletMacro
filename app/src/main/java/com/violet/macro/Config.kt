@@ -25,7 +25,7 @@ class Config(ctx: Context) {
         ctx.applicationContext.getSharedPreferences("violet_macro", Context.MODE_PRIVATE)
 
     var keyHold: Int
-        get() = sp.getInt("keyHold", 15)
+        get() = sp.getInt("keyHold", 30)
         set(v) { sp.edit().putInt("keyHold", v).apply() }
 
     var delayAfter3: Int

@@ -40,7 +40,7 @@ class MainActivity : Activity() {
 
     private fun refresh() {
         val on = MacroService.instance != null
-        status.text = if (on) "●  Serviço ativo" else "●  Serviço desligado"
+        status.text = if (on) "●  Service on" else "●  Service off"
         status.setTextColor(if (on) VC.GREEN else VC.ORANGE)
         enableBtn.visibility = if (on) View.GONE else View.VISIBLE
     }
@@ -125,45 +125,45 @@ class MainActivity : Activity() {
         val c1 = card()
         status = label("", 18f, VC.ORANGE, true)
         c1.addView(status)
-        c1.addView(label("O painel flutuante aparece por cima do Roblox / Delta.", 12f, VC.DIM).apply {
+        c1.addView(label("The floating panel shows up over the game.", 12f, VC.DIM).apply {
             setPadding(0, dp(4), 0, 0)
         })
-        enableBtn = button("Ativar serviço de acessibilidade", true) {
+        enableBtn = button("Enable accessibility service", true) {
             startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
         }
         c1.addView(enableBtn)
-        c1.addView(button("Mostrar / ocultar painel", false) {
+        c1.addView(button("Show / hide panel", false) {
             val s = MacroService.instance
-            if (s == null) toast("Ative o serviço de acessibilidade primeiro")
+            if (s == null) toast("Enable the accessibility service first")
             else s.setPanelShown(!s.panelVisible)
         })
         root.addView(c1)
 
         val c2 = card()
-        c2.addView(label("Tempos  (iguais aos do macro de PC)", 14f, VC.TEXT, true))
-        seek(c2, "Duração do toque", 1, 100, { cfg.keyHold }, { cfg.keyHold = it })
-        seek(c2, "Espera após o slot 3", 0, 100, { cfg.delayAfter3 }, { cfg.delayAfter3 = it })
-        seek(c2, "Espera pulo → slot 1", 0, 100, { cfg.delayJumpTo1 }, { cfg.delayJumpTo1 = it })
-        seek(c2, "Bloqueio entre disparos", 50, 1000, { cfg.lockout }, { cfg.lockout = it })
+        c2.addView(label("Timings", 14f, VC.TEXT, true))
+        seek(c2, "Tap duration", 1, 100, { cfg.keyHold }, { cfg.keyHold = it })
+        seek(c2, "Delay after slot 3", 0, 100, { cfg.delayAfter3 }, { cfg.delayAfter3 = it })
+        seek(c2, "Delay jump → slot 1", 0, 100, { cfg.delayJumpTo1 }, { cfg.delayJumpTo1 = it })
+        seek(c2, "Lockout", 50, 1000, { cfg.lockout }, { cfg.lockout = it })
         val sw = Switch(this).apply {
-            text = "Botão também toca no slot 3"
+            text = "Button also taps slot 3"
             setTextColor(VC.TEXT)
             isChecked = cfg.tapSlot3
             setPadding(0, dp(16), 0, 0)
             setOnCheckedChangeListener { _, on -> cfg.tapSlot3 = on }
         }
         c2.addView(sw)
-        c2.addView(label("Se mudar essa opção, calibre de novo.", 11f, VC.DIM).apply { setPadding(0, dp(4), 0, 0) })
+        c2.addView(label("Recalibrate after changing this.", 11f, VC.DIM).apply { setPadding(0, dp(4), 0, 0) })
         root.addView(c2)
 
         val c3 = card()
-        c3.addView(label("Como usar", 14f, VC.TEXT, true))
+        c3.addView(label("How to use", 14f, VC.TEXT, true))
         c3.addView(label(
-            "1. Ative o serviço (botão acima).\n" +
-                "2. Abra o Roblox com o Delta, em modo paisagem.\n" +
-                "3. No painel, toque em ⚙ calibrar e toque, em ordem, no slot 3, no botão de pulo e no slot 1.\n" +
-                "4. Ligue o switch ON. Tocar no botão \"3\" do painel dispara: slot 3 → pulo → slot 1.\n" +
-                "5. Arraste o painel pelos três pontinhos pra onde não atrapalhe.",
+            "1. Enable the service (button above).\n" +
+                "2. Open Roblox in landscape.\n" +
+                "3. On the panel tap ⚙ calibrate, then tap slot 3, the jump button and slot 1, in that order.\n" +
+                "4. Switch ON. Tapping the \"3\" button runs slot 3 → jump → slot 1.\n" +
+                "5. Drag the panel by the three dots.",
             12f, VC.DIM
         ).apply { setPadding(0, dp(8), 0, 0); setLineSpacing(0f, 1.2f) })
         root.addView(c3)

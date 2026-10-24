@@ -1,6 +1,7 @@
 package com.violet.macro
 
 import android.accessibilityservice.AccessibilityService
+import android.accessibilityservice.AccessibilityService.GestureResultCallback
 import android.accessibilityservice.GestureDescription
 import android.content.Context
 import android.content.Intent
@@ -14,6 +15,8 @@ import android.graphics.RectF
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
 import android.util.DisplayMetrics
 import android.view.Gravity
@@ -43,6 +46,7 @@ class MacroService : AccessibilityService() {
     private var counterView: TextView? = null
     private var calib: CalibView? = null
 
+    private val handler = Handler(Looper.getMainLooper())
     private var active = false
     private var count = 0
     private var lastFire = 0L
@@ -71,6 +75,7 @@ class MacroService : AccessibilityService() {
     }
 
     private fun teardown() {
+        handler.removeCallbacksAndMessages(null)
         hidePanel()
         cancelCalibration()
         instance = null
@@ -147,7 +152,7 @@ class MacroService : AccessibilityService() {
             setPadding(0, dp(4), 0, 0)
         }
         val gear = TextView(this).apply {
-            text = "⚙ calibrar"
+            text = "⚙ calibrate"
             textSize = 11f
             setTextColor(VC.LIGHT)
             gravity = Gravity.CENTER
@@ -186,14 +191,16 @@ class MacroService : AccessibilityService() {
             true
         }
 
-        // fire on touch down
+        // fire on release
         fb.setOnTouchListener { v, e ->
             when (e.actionMasked) {
-                MotionEvent.ACTION_DOWN -> {
+                MotionEvent.ACTION_DOWN ->
                     v.animate().scaleX(0.9f).scaleY(0.9f).setDuration(60).start()
+                MotionEvent.ACTION_UP -> {
+                    v.animate().scaleX(1f).scaleY(1f).setDuration(90).start()
                     fire()
                 }
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL ->
+                MotionEvent.ACTION_CANCEL ->
                     v.animate().scaleX(1f).scaleY(1f).setDuration(90).start()
             }
             true
@@ -252,39 +259,43 @@ class MacroService : AccessibilityService() {
         val jp = cfg.point("jump")
         val s1 = cfg.point("slot1")
         if (jp == null || s1 == null || (cfg.tapSlot3 && s3 == null)) {
-            toast("Calibre as posições primeiro (⚙ calibrar)")
+            toast("Calibrate first (⚙ calibrate)")
             return
         }
         if (cfg.landscape != (w > h)) {
-            toast("Tela em outra orientação da calibração — recalibre")
+            toast("Orientation changed, recalibrate")
             return
         }
         lastFire = now
 
         val hold = cfg.keyHold.toLong()
-        val b = GestureDescription.Builder()
-        var t = 0L
-        if (cfg.tapSlot3 && s3 != null) {
-            b.addStroke(tap(s3, w, h, t, hold))
-            t += hold
-        }
-        t += cfg.delayAfter3
-        b.addStroke(tap(jp, w, h, t, hold))
-        t += hold + cfg.delayJumpTo1
-        b.addStroke(tap(s1, w, h, t, hold))
-
-        dispatchGesture(b.build(), null, null)
+        val pts = ArrayList<PointF>()
+        val gaps = ArrayList<Long>()
+        if (cfg.tapSlot3 && s3 != null) { pts.add(s3); gaps.add(cfg.delayAfter3.toLong()) }
+        pts.add(jp); gaps.add(cfg.delayJumpTo1.toLong())
+        pts.add(s1); gaps.add(0L)
+        val lead = if (cfg.tapSlot3) 0L else cfg.delayAfter3.toLong()
+        handler.postDelayed({ step(pts, gaps, 0, w, h, hold) }, lead)
         count++
         refreshLook()
+    }
+
+    private fun step(pts: List<PointF>, gaps: List<Long>, i: Int, w: Int, h: Int, hold: Long) {
+        val g = GestureDescription.Builder().addStroke(tap(pts[i], w, h, 0L, hold)).build()
+        dispatchGesture(g, object : GestureResultCallback() {
+            override fun onCompleted(d: GestureDescription?) {
+                if (i + 1 < pts.size) handler.postDelayed({ step(pts, gaps, i + 1, w, h, hold) }, gaps[i])
+            }
+        }, null)
     }
 
     fun startCalibration() {
         if (calib != null) return
         val labels = ArrayList<String>()
         val keys = ArrayList<String>()
-        if (cfg.tapSlot3) { labels.add("o SLOT 3 da hotbar"); keys.add("slot3") }
-        labels.add("o botão de PULO"); keys.add("jump")
-        labels.add("o SLOT 1 da hotbar"); keys.add("slot1")
+        if (cfg.tapSlot3) { labels.add("SLOT 3"); keys.add("slot3") }
+        labels.add("the JUMP button"); keys.add("jump")
+        labels.add("SLOT 1"); keys.add("slot1")
 
         val view = CalibView(
             this, labels,
@@ -293,7 +304,7 @@ class MacroService : AccessibilityService() {
                 pts.forEachIndexed { i, p -> cfg.setPoint(keys[i], p.x / w, p.y / h) }
                 cfg.landscape = w > h
                 cancelCalibration()
-                toast("Calibração salva ✓")
+                toast("Calibration saved ✓")
             },
             onCancel = { cancelCalibration() }
         )
@@ -351,8 +362,8 @@ private class CalibView(
         val cx = width / 2f
         val step = pts.size
 
-        c.drawText("Passo ${minOf(step + 1, labels.size)} de ${labels.size}", cx, 52f * d, sub)
-        labels.getOrNull(step)?.let { c.drawText("Toque em cima de $it", cx, 84f * d, title) }
+        c.drawText("Step ${minOf(step + 1, labels.size)} of ${labels.size}", cx, 52f * d, sub)
+        labels.getOrNull(step)?.let { c.drawText("Tap on $it", cx, 84f * d, title) }
 
         for ((i, p) in pts.withIndex()) {
             val x = p.x - loc[0]
@@ -364,7 +375,7 @@ private class CalibView(
 
         cancelRect.set(cx - 80f * d, height - 72f * d, cx + 80f * d, height - 28f * d)
         c.drawRoundRect(cancelRect, 14f * d, 14f * d, ring)
-        c.drawText("CANCELAR", cx, cancelRect.centerY() + 5f * d, tag)
+        c.drawText("CANCEL", cx, cancelRect.centerY() + 5f * d, tag)
     }
 
     override fun onTouchEvent(e: MotionEvent): Boolean {
