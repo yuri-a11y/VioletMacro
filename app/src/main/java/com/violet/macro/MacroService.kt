@@ -191,7 +191,10 @@ class MacroService : AccessibilityService() {
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
+                // lets this panel get its own finger while another finger (the joystick) is
+                // already down on the game window; without it the panel is dead while walking
+                WindowManager.LayoutParams.FLAG_SPLIT_TOUCH
         ).apply { x = cfg.panelX; y = cfg.panelY }
 
         // drag
@@ -374,7 +377,10 @@ class MacroService : AccessibilityService() {
                 if (i + 1 < acts.size) handler.postDelayed({ step(acts, i + 1, w, h) }, a.gap)
                 else busy = false
             }
-            override fun onCancelled(d: GestureDescription?) { busy = false }
+            override fun onCancelled(d: GestureDescription?) {
+                busy = false
+                toast("Gesture cancelled by the system (finger on the screen?)")
+            }
         }, null)
         if (!ok) busy = false
     }

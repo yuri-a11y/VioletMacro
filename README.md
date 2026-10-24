@@ -47,6 +47,10 @@ Sequência (mesma mecânica do macro 3: um toque de cada vez, e o delay conta do
 
 Os tempos do S ficam no card *Shidou macro* do app. Se a primeira parte (chute, 3 e pulo) não sair igual ao macro 3, compare *Hold M1* (50 ms) com *Tap duration* (30 ms) e *Delay M1 → slot 3* (150 ms) com *Delay after kick* (150 ms).
 
+## Usar andando (joystick segurado)
+
+O painel usa *split touch*, então ele recebe o toque do segundo dedo mesmo com o primeiro dedo segurando o joystick. Se um passo do macro for cancelado pelo Android (acontece quando há um dedo de verdade na tela), aparece o aviso *Gesture cancelled by the system*.
+
 ## Notas
 
 - Calibre na mesma orientação em que vai jogar. Se mudar de orientação, o app avisa pra recalibrar.
