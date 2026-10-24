@@ -120,7 +120,7 @@ class MainActivity : Activity() {
         }
 
         root.addView(label("VIOLET MACRO", 24f, VC.TEXT, true))
-        root.addView(label("Roblox 3-Trigger  •  Android", 12f, VC.DIM))
+        root.addView(label("Roblox macros (3 / S)  •  Android", 12f, VC.DIM))
 
         val c1 = card()
         status = label("", 18f, VC.ORANGE, true)
@@ -175,6 +175,22 @@ class MainActivity : Activity() {
         c2.addView(label("Recalibrate after changing this.", 11f, VC.DIM).apply { setPadding(0, dp(4), 0, 0) })
         root.addView(c2)
 
+        val cs = card()
+        cs.addView(label("Shidou macro (S button)", 14f, VC.TEXT, true))
+        cs.addView(label("swipe cam up → hold M1 → slot 3 → jump → technique → slot 3 → slot 2 + T", 11f, VC.DIM).apply {
+            setPadding(0, dp(4), 0, 0)
+        })
+        seek(cs, "Hold M1 (medium kick)", 10, 1000, { cfg.shHold }, { cfg.shHold = it })
+        seek(cs, "Delay M1 → slot 3", 0, 300, { cfg.shGap }, { cfg.shGap = it })
+        seek(cs, "Delay slot 3 → jump", 0, 100, { cfg.shDelay3Jump }, { cfg.shDelay3Jump = it })
+        seek(cs, "Delay jump → technique mode", 0, 100, { cfg.shDelayJumpTech }, { cfg.shDelayJumpTech = it })
+        seek(cs, "Delay technique → slot 3 (headbutt)", 0, 200, { cfg.shDelayTech3 }, { cfg.shDelayTech3 = it })
+        seek(cs, "Delay slot 3 → 2 + T", 0, 200, { cfg.shDelay3Last }, { cfg.shDelay3Last = it })
+        cs.addView(label("S reuses the macro 3 calibration for swipe, kick, slot 3 and jump, plus its tap duration, swipe duration, delay after swipe and lockout (Timings card above). calibrate S only asks for technique mode, slot 2 and T.", 11f, VC.DIM).apply {
+            setPadding(0, dp(10), 0, 0)
+        })
+        root.addView(cs)
+
         val c3 = card()
         c3.addView(label("How to use", 14f, VC.TEXT, true))
         c3.addView(label(
@@ -182,7 +198,8 @@ class MainActivity : Activity() {
                 "2. Open Roblox in landscape.\n" +
                 "3. On the panel tap ⚙ calibrate, then tap where the camera swipe starts and ends, the kick button, slot 3, the jump button and slot 1, in that order.\n" +
                 "4. Switch ON. Tapping the \"3\" button runs swipe → kick → slot 3 → jump → slot 1.\n" +
-                "5. Drag the panel by the three dots.",
+                "5. Drag the panel by the three dots.\n" +
+                "6. S button: calibrate 3 first (S reuses its swipe, kick, slot 3 and jump), then tap ⚙ calibrate S and tap technique mode, slot 2 and T, in that order. Tapping \"S\" runs the Shidou combo.",
             12f, VC.DIM
         ).apply { setPadding(0, dp(8), 0, 0); setLineSpacing(0f, 1.2f) })
         root.addView(c3)

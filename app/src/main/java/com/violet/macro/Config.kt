@@ -64,6 +64,33 @@ class Config(ctx: Context) {
         get() = sp.getInt("delayAfterKick", 150)
         set(v) { sp.edit().putInt("delayAfterKick", v).apply() }
 
+    // Shidou macro: how long to hold M1, and the pause between steps
+    var shHold: Int
+        get() = sp.getInt("shHold", 50)
+        set(v) { sp.edit().putInt("shHold", v).apply() }
+
+    var shGap: Int
+        get() = sp.getInt("shGap", 150)
+        set(v) { sp.edit().putInt("shGap", v).apply() }
+
+    // Shidou: pause between slot 3 and the jump tap (keep it tiny, like macro 3)
+    var shDelay3Jump: Int
+        get() = sp.getInt("shDelay3Jump", 10)
+        set(v) { sp.edit().putInt("shDelay3Jump", v).apply() }
+
+    // Shidou: jump -> technique mode, wait for the headbutt, last slot 3 -> 2 + T
+    var shDelayJumpTech: Int
+        get() = sp.getInt("shDelayJumpTech", 0)
+        set(v) { sp.edit().putInt("shDelayJumpTech", v).apply() }
+
+    var shDelayTech3: Int
+        get() = sp.getInt("shDelayTech3", 25)
+        set(v) { sp.edit().putInt("shDelayTech3", v).apply() }
+
+    var shDelay3Last: Int
+        get() = sp.getInt("shDelay3Last", 35)
+        set(v) { sp.edit().putInt("shDelay3Last", v).apply() }
+
     var landscape: Boolean
         get() = sp.getBoolean("landscape", true)
         set(v) { sp.edit().putBoolean("landscape", v).apply() }
