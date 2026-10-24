@@ -30,7 +30,7 @@ import android.widget.TextView
 import android.widget.Toast
 
 // macro 3: swipe -> kick -> slot 3 -> jump -> slot 1
-// macro S (Shidou): hold M1 -> jump -> slot 3 -> technique -> slot 3 -> slot 2 + T together
+// macro S (Shidou): camera swipe up -> hold M1 -> slot 3 + jump (tight) -> technique -> slot 3 -> slot 2 + T together
 class MacroService : AccessibilityService() {
 
     companion object {
@@ -307,20 +307,22 @@ class MacroService : AccessibilityService() {
         refreshLook()
     }
 
-    // Shidou: hold M1 -> jump -> slot 3 -> technique mode -> slot 3 -> slot 2 + T together
+    // Shidou: camera swipe up -> hold M1 -> slot 3 + jump (tight) -> technique mode -> slot 3 -> slot 2 + T together
     private fun fireShidou() {
         if (!active || busy) return
         val now = SystemClock.uptimeMillis()
         if (now - lastFire < cfg.lockout) return
 
         val (w, h) = screenSize()
+        val cs = cfg.point("shCamStart")
+        val ce = cfg.point("shCamEnd")
         val m1 = cfg.point("shM1")
-        val jp = cfg.point("shJump")
         val s3 = cfg.point("shS3")
+        val jp = cfg.point("shJump")
         val tech = cfg.point("shTech")
         val s2 = cfg.point("shS2")
         val tk = cfg.point("shT")
-        if (m1 == null || jp == null || s3 == null || tech == null || s2 == null || tk == null) {
+        if (cs == null || ce == null || m1 == null || s3 == null || jp == null || tech == null || s2 == null || tk == null) {
             toast("Calibrate S first (⚙ calibrate S)")
             return
         }
@@ -333,9 +335,10 @@ class MacroService : AccessibilityService() {
         val tap = cfg.keyHold.toLong()
         val gap = cfg.shGap.toLong()
         val acts = listOf(
+            Act(cs, ce, cfg.swipeMs.toLong(), cfg.delayAfterSwipe.toLong()),
             Act(m1, null, cfg.shHold.toLong(), gap),
+            Act(s3, null, tap, cfg.shDelay3Jump.toLong()),
             Act(jp, null, tap, gap),
-            Act(s3, null, tap, gap),
             Act(tech, null, tap, gap),
             Act(s3, null, tap, gap),
             Act(s2, null, tap, 0L, tk)
@@ -376,9 +379,11 @@ class MacroService : AccessibilityService() {
         val labels = ArrayList<String>()
         val keys = ArrayList<String>()
         if (shidou) {
+            labels.add("where the camera swipe (UP) STARTS"); keys.add("shCamStart")
+            labels.add("where the camera swipe (UP) ENDS"); keys.add("shCamEnd")
             labels.add("the M1 button"); keys.add("shM1")
-            labels.add("the JUMP button"); keys.add("shJump")
             labels.add("SLOT 3"); keys.add("shS3")
+            labels.add("the JUMP button"); keys.add("shJump")
             labels.add("the TECHNIQUE MODE button"); keys.add("shTech")
             labels.add("SLOT 2"); keys.add("shS2")
             labels.add("the T button"); keys.add("shT")

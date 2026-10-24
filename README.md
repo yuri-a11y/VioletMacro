@@ -36,16 +36,16 @@ Tempos padrão: toque 30 ms, espera após o 3 de 10 ms, pulo → 1 de 0 ms, bloq
 
 Segundo botão redondo no painel (**S**), com calibração própria (**⚙ calibrate S**). Sequência:
 
-1. segura o **M1** (padrão 500 ms, ajustável no app em *Shidou macro → Hold M1*)
-2. **pulo**
-3. **slot 3**
+1. **swipe da câmera pra cima** (pro chute ir pra cima)
+2. segura o **M1** (padrão 500 ms, ajustável: *Shidou macro → Hold M1*)
+3. **slot 3** e, 10 ms depois, **pulo** (igual ao macro 3: se o 3 sair na hora errada em relação ao pulo, o jogo usa a variação do 3)
 4. **modo técnica**
 5. **slot 3** de novo
 6. **slot 2 + T ao mesmo tempo** (dois dedos no mesmo gesto)
 
-Calibração do S, na ordem: M1, pulo, slot 3, modo técnica, slot 2, T.
+Calibração do S, na ordem: início do swipe, fim do swipe, M1, slot 3, pulo, modo técnica, slot 2, T.
 
-Ajustes: *Hold M1* (100–2000 ms) e *Gap between steps* (0–300 ms, pausa entre cada passo). A duração do toque e o lockout vêm do card *Timings*. Se o jogo comer o 3 logo depois do pulo, aumente o gap.
+Ajustes: *Hold M1* (100–2000 ms), *Delay slot 3 → jump* (0–100 ms, padrão 10) e *Gap between other steps* (0–300 ms). Duração do toque, do swipe, delay após o swipe e lockout vêm do card *Timings*. O que decide se o 3 vira a variação é o *Delay slot 3 → jump*: ajuste de pouco em pouco até acertar.
 
 ## Notas
 

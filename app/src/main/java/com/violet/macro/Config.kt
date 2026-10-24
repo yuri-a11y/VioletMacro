@@ -73,6 +73,11 @@ class Config(ctx: Context) {
         get() = sp.getInt("shGap", 40)
         set(v) { sp.edit().putInt("shGap", v).apply() }
 
+    // Shidou: pause between slot 3 and the jump tap (keep it tiny, like macro 3)
+    var shDelay3Jump: Int
+        get() = sp.getInt("shDelay3Jump", 10)
+        set(v) { sp.edit().putInt("shDelay3Jump", v).apply() }
+
     var landscape: Boolean
         get() = sp.getBoolean("landscape", true)
         set(v) { sp.edit().putBoolean("landscape", v).apply() }

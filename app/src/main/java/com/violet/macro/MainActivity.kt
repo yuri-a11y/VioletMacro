@@ -177,12 +177,13 @@ class MainActivity : Activity() {
 
         val cs = card()
         cs.addView(label("Shidou macro (S button)", 14f, VC.TEXT, true))
-        cs.addView(label("hold M1 → jump → slot 3 → technique → slot 3 → slot 2 + T", 11f, VC.DIM).apply {
+        cs.addView(label("swipe cam up → hold M1 → slot 3 → jump → technique → slot 3 → slot 2 + T", 11f, VC.DIM).apply {
             setPadding(0, dp(4), 0, 0)
         })
         seek(cs, "Hold M1", 100, 2000, { cfg.shHold }, { cfg.shHold = it })
-        seek(cs, "Gap between steps", 0, 300, { cfg.shGap }, { cfg.shGap = it })
-        cs.addView(label("Tap duration and lockout come from the Timings card above.", 11f, VC.DIM).apply {
+        seek(cs, "Delay slot 3 → jump", 0, 100, { cfg.shDelay3Jump }, { cfg.shDelay3Jump = it })
+        seek(cs, "Gap between other steps", 0, 300, { cfg.shGap }, { cfg.shGap = it })
+        cs.addView(label("Tap duration, swipe duration, delay after swipe and lockout come from the Timings card above.", 11f, VC.DIM).apply {
             setPadding(0, dp(10), 0, 0)
         })
         root.addView(cs)
@@ -195,7 +196,7 @@ class MainActivity : Activity() {
                 "3. On the panel tap ⚙ calibrate, then tap where the camera swipe starts and ends, the kick button, slot 3, the jump button and slot 1, in that order.\n" +
                 "4. Switch ON. Tapping the \"3\" button runs swipe → kick → slot 3 → jump → slot 1.\n" +
                 "5. Drag the panel by the three dots.\n" +
-                "6. S button: tap ⚙ calibrate S and tap M1, jump, slot 3, technique mode, slot 2 and T, in that order. Tapping \"S\" runs the Shidou combo.",
+                "6. S button: tap ⚙ calibrate S, then tap where the camera swipe (up) starts and ends, M1, slot 3, the jump button, technique mode, slot 2 and T, in that order. Tapping \"S\" runs the Shidou combo.",
             12f, VC.DIM
         ).apply { setPadding(0, dp(8), 0, 0); setLineSpacing(0f, 1.2f) })
         root.addView(c3)
