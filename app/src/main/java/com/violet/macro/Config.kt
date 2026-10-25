@@ -74,11 +74,6 @@ class Config(ctx: Context) {
         get() = sp.getBoolean("useKeys", false)
         set(v) { sp.edit().putBoolean("useKeys", v).apply() }
 
-    // script mode: the panel button asks the Delta script to run macro 3 inside the game (no touch injected)
-    var useScript: Boolean
-        get() = sp.getBoolean("useScript", false)
-        set(v) { sp.edit().putBoolean("useScript", v).apply() }
-
     // the injected finger gets its own device id and pointer id, so it never collides with the real touchscreen
     var injDeviceId: Int
         get() = sp.getInt("injDeviceId", 4242)
