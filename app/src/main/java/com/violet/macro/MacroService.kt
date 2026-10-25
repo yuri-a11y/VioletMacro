@@ -64,6 +64,8 @@ class MacroService : AccessibilityService() {
         wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         cfg = Config(this)
         ShizukuBridge.init(this)
+        LocalBridge.dir = cfg.bridgeDir
+        LocalBridge.start()
         if (cfg.panelShown) showPanel()
     }
 
@@ -85,6 +87,7 @@ class MacroService : AccessibilityService() {
         busy = false
         hidePanel()
         cancelCalibration()
+        LocalBridge.stop()
         instance = null
     }
 
@@ -285,6 +288,18 @@ class MacroService : AccessibilityService() {
         if (!active || isBusy()) return
         val now = SystemClock.uptimeMillis()
         if (now - lastFire < cfg.lockout) return
+
+        if (cfg.useScript) {
+            if (!LocalBridge.scriptConnected) {
+                toast("Script not connected. Run the Delta script first")
+                return
+            }
+            lastFire = now
+            LocalBridge.trigger()
+            count++
+            refreshLook()
+            return
+        }
 
         if (cfg.useKeys) { fireKeys(now); return }
 

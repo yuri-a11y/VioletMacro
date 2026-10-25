@@ -1,14 +1,17 @@
 package com.violet.macro
 
 import android.os.SystemClock
+import java.io.File
 import java.net.InetAddress
 import java.net.ServerSocket
 import java.net.Socket
+import java.util.concurrent.Executors
 
 // Tiny HTTP server on 127.0.0.1. The Delta script long-polls /poll and runs the macro when the counter moves.
 object LocalBridge {
     const val PORT = 38417
     private const val WAIT_MS = 15000L
+    const val DEFAULT_DIR = "/storage/emulated/0/Delta/Workspace"
 
     private val lock = Object()
     private var server: ServerSocket? = null
@@ -16,8 +19,22 @@ object LocalBridge {
     @Volatile var lastPoll = 0L
         private set
 
-    val scriptConnected: Boolean
+    // file channel: some executors cannot reach localhost, so the app also writes the trigger into the
+    // executor's workspace folder, and the script writes a heartbeat file there that the app reads back
+    @Volatile var dir: String = DEFAULT_DIR
+    private val writer = Executors.newSingleThreadExecutor()
+
+    private val httpAlive: Boolean
         get() = lastPoll != 0L && SystemClock.uptimeMillis() - lastPoll < WAIT_MS + 8000
+
+    val fileAlive: Boolean
+        get() = try {
+            val f = File(dir, "violet_alive.txt")
+            f.exists() && System.currentTimeMillis() - f.lastModified() < 8000
+        } catch (_: Throwable) { false }
+
+    val scriptConnected: Boolean
+        get() = httpAlive || fileAlive
 
     @Synchronized
     fun start() {
@@ -50,6 +67,13 @@ object LocalBridge {
         synchronized(lock) {
             counter++
             lock.notifyAll()
+        }
+        val d = dir
+        writer.execute {
+            try {
+                File(d).mkdirs()
+                File(d, "violet_trigger.txt").writeText(System.currentTimeMillis().toString())
+            } catch (_: Throwable) {}
         }
     }
 

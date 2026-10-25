@@ -65,3 +65,14 @@ Nova opção na tela do app: **Keys mode for macro 3**. Em vez de tocar na tela,
 - Swipe da câmera e chute (que são toque) ficam de fora nesse modo, e o macro 3 não precisa de calibração.
 - O macro S continua usando toque.
 - Se nada acontecer no jogo, o Roblox/Delta pode não estar aceitando teclado injetado: aí avisa que a gente ajusta.
+
+## Script mode (Delta)
+
+The "3" button can call a Lua script inside Delta instead of tapping the screen. Turn on **Use script for macro 3** in the app, then run `delta/violet_bridge.lua` in Delta. The app listens on 127.0.0.1:38417 and the script runs camera up, kick, slot 3, jump and slot 1 inside the game. For the kick, paste the script below the part of your script that defines `buffers`.
+
+## Modo script (Delta) por arquivo
+
+Se o Delta não alcança o `127.0.0.1` (erro `ConnectFail`), a ponte usa um arquivo na pasta workspace do Delta, sem rede:
+1. No app: **Script mode** → **Allow file access** (dar "acesso a todos os arquivos") e conferir a pasta do workspace do Delta.
+2. Rodar `violet_bridge.lua` no Delta. O status do app muda para "Script connected".
+3. Ligar "Use script for macro 3".

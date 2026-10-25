@@ -1,5 +1,5 @@
 -- Violet Macro bridge for Delta (Roblox)
--- Waits for the app's "3" button (localhost long-poll) and runs macro 3 inside the game:
+-- Waits for the app's "3" button (through a file in the Delta workspace, no network) and runs macro 3 inside the game:
 -- camera up -> kick up -> slot 3 -> jump -> slot 1. No screen touch is injected.
 -- Run it alone, or paste it below the part of your script that defines `buffers`.
 
@@ -27,12 +27,9 @@ if genv.VioletBridgeStop then pcall(genv.VioletBridgeStop) end
 local alive = true
 genv.VioletBridgeStop = function() alive = false end
 
-local req = (syn and syn.request) or (http and http.request) or http_request or request
-local BASE = "http://127.0.0.1:" .. CFG.port
-
-local function note(text)
+local function note(text, dur)
     pcall(function()
-        StarterGui:SetCore("SendNotification", { Title = "Violet Macro", Text = text, Duration = 2 })
+        StarterGui:SetCore("SendNotification", { Title = "Violet Macro", Text = text, Duration = dur or 2 })
     end)
 end
 
@@ -103,31 +100,35 @@ local function macro3()
     if not ok then warn("[violet] macro error: " .. tostring(err)) end
 end
 
-if not req then
-    note("This executor has no http request function")
+local TRIGGER, ALIVE = "violet_trigger.txt", "violet_alive.txt"
+
+if not (readfile and writefile) then
+    note("This executor has no readfile/writefile", 6)
     return
 end
 
+-- heartbeat: the app reads this file to show "Script connected"
 task.spawn(function()
-    local last, shown, fails = -1, false, 0
     while alive do
-        local ok, res = pcall(req, { Url = BASE .. "/poll?since=" .. last, Method = "GET" })
-        local n = ok and res and res.Body and tonumber(res.Body)
-        if n then
-            fails = 0
-            if not shown then shown = true; note("Connected to the app") end
-            if last < 0 then
-                last = n -- first answer only syncs the counter
-            elseif n > last then
-                last = n
-                task.spawn(macro3)
-            end
-        else
-            fails += 1
-            if fails == 3 then note("App not reachable (is the panel service on?)") end
-            task.wait(2)
-        end
+        pcall(writefile, ALIVE, tostring(os.time()))
+        task.wait(2)
     end
 end)
 
-note("Bridge started")
+-- the app writes a new timestamp into the trigger file every time the "3" button is tapped
+task.spawn(function()
+    local last
+    while alive do
+        local ok, data = pcall(readfile, TRIGGER)
+        if not ok or type(data) ~= "string" then data = "" end
+        if last == nil then
+            last = data -- first read only syncs
+        elseif data ~= last then
+            last = data
+            task.spawn(macro3)
+        end
+        task.wait(0.03)
+    end
+end)
+
+note("Bridge started (file mode)")

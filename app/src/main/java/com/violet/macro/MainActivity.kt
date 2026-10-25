@@ -6,11 +6,16 @@ import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
+import android.text.Editable
+import android.text.TextWatcher
 import android.provider.Settings
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.SeekBar
@@ -24,6 +29,7 @@ class MainActivity : Activity() {
     private lateinit var status: TextView
     private lateinit var enableBtn: TextView
     private lateinit var shizukuStatus: TextView
+    private lateinit var bridgeStatus: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,7 +54,20 @@ class MainActivity : Activity() {
         val (txt, good) = ShizukuBridge.status()
         shizukuStatus.text = txt
         shizukuStatus.setTextColor(if (good) VC.GREEN else VC.ORANGE)
+        val conn = LocalBridge.scriptConnected
+        val files = Environment.isExternalStorageManager()
+        bridgeStatus.text = when {
+            !on -> "Enable the accessibility service first (the bridge runs inside it)."
+            conn -> "Script connected."
+            !files -> "Tap Allow file access below, then run the Delta script."
+            else -> "Waiting for the Delta script (file folder: ${LocalBridge.dir})."
+        }
+        bridgeStatus.setTextColor(if (conn) VC.GREEN else VC.ORANGE)
+        window.decorView.removeCallbacks(tick)
+        window.decorView.postDelayed(tick, 2000)
     }
+
+    private val tick = Runnable { if (!isFinishing) refresh() }
 
     private fun connectShizuku() {
         ShizukuBridge.init(this)
@@ -239,6 +258,48 @@ class MainActivity : Activity() {
             setPadding(0, dp(4), 0, 0)
         })
         root.addView(cz)
+
+        val cb = card()
+        cb.addView(label("Script mode (Delta)", 14f, VC.TEXT, true))
+        cb.addView(label("The \"3\" button tells the Delta script, and the script runs the macro inside the game. Nothing is injected on the screen, so walking is not interrupted. Needs violet_bridge.lua running in Delta. Applies to macro 3 only.", 11f, VC.DIM).apply {
+            setPadding(0, dp(4), 0, 0)
+        })
+        bridgeStatus = label("", 12f, VC.ORANGE).apply { setPadding(0, dp(10), 0, 0) }
+        cb.addView(bridgeStatus)
+        val swB = Switch(this).apply {
+            text = "Use script for macro 3"
+            setTextColor(VC.TEXT)
+            isChecked = cfg.useScript
+            setPadding(0, dp(16), 0, 0)
+            setOnCheckedChangeListener { _, on -> cfg.useScript = on }
+        }
+        cb.addView(swB)
+        cb.addView(label("Delta workspace folder (where Delta saves script files):", 11f, VC.DIM).apply {
+            setPadding(0, dp(14), 0, 0)
+        })
+        val dirEdit = EditText(this).apply {
+            setText(cfg.bridgeDir)
+            setTextColor(VC.TEXT)
+            textSize = 12f
+            setSingleLine(true)
+            addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+                override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+                override fun afterTextChanged(s: Editable?) {
+                    val v = s?.toString()?.trim().orEmpty()
+                    if (v.isNotEmpty()) { cfg.bridgeDir = v; LocalBridge.dir = v }
+                }
+            })
+        }
+        cb.addView(dirEdit)
+        cb.addView(button("Allow file access", false) {
+            startActivity(
+                Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, Uri.parse("package:$packageName"))
+            )
+        }.apply {
+            (layoutParams as? ViewGroup.MarginLayoutParams)?.topMargin = dp(10)
+        })
+        root.addView(cb)
 
         val c3 = card()
         c3.addView(label("How to use", 14f, VC.TEXT, true))
