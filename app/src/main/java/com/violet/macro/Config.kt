@@ -69,6 +69,11 @@ class Config(ctx: Context) {
         get() = sp.getBoolean("useShizuku", false)
         set(v) { sp.edit().putBoolean("useShizuku", v).apply() }
 
+    // keys mode: macro 3 sends keyboard keys (3, SPACE, 1) through Shizuku instead of touches
+    var useKeys: Boolean
+        get() = sp.getBoolean("useKeys", false)
+        set(v) { sp.edit().putBoolean("useKeys", v).apply() }
+
     // the injected finger gets its own device id and pointer id, so it never collides with the real touchscreen
     var injDeviceId: Int
         get() = sp.getInt("injDeviceId", 4242)

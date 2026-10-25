@@ -4,6 +4,8 @@ import android.os.Process
 import android.os.SystemClock
 import android.view.InputDevice
 import android.view.InputEvent
+import android.view.KeyCharacterMap
+import android.view.KeyEvent
 import android.view.MotionEvent
 import java.lang.reflect.Method
 import kotlin.system.exitProcess
@@ -75,6 +77,31 @@ class InjectorService() : IInjector.Stub() {
         }
         ok = send(MotionEvent.ACTION_UP, t0, SystemClock.uptimeMillis(), x2, y2, deviceId, pointerId) && ok
         return ok
+    }
+
+    // keyboard event from the virtual keyboard device: a different input stream than the touchscreen,
+    // so it never touches the finger that is holding the joystick
+    override fun key(keyCode: Int, holdMs: Int): Boolean {
+        val t0 = SystemClock.uptimeMillis()
+        val down = sendKey(KeyEvent.ACTION_DOWN, keyCode, t0, t0)
+        sleepMs(holdMs.toLong())
+        val up = sendKey(KeyEvent.ACTION_UP, keyCode, t0, SystemClock.uptimeMillis())
+        return down && up
+    }
+
+    private fun sendKey(action: Int, keyCode: Int, downTime: Long, now: Long): Boolean {
+        val m = inject ?: return false
+        val target = im ?: return false
+        val ev = KeyEvent(
+            downTime, now, action, keyCode, 0, 0,
+            KeyCharacterMap.VIRTUAL_KEYBOARD, 0, 0, InputDevice.SOURCE_KEYBOARD
+        )
+        return try {
+            val r = if (injectArgs == 2) m.invoke(target, ev, 0) else m.invoke(target, ev, 0, -1)
+            r as? Boolean ?: false
+        } catch (_: Throwable) {
+            false
+        }
     }
 
     private fun sleepMs(ms: Long) {

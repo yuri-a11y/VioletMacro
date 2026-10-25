@@ -56,3 +56,12 @@ O painel usa *split touch*, então ele recebe o toque do segundo dedo mesmo com 
 - Calibre na mesma orientação em que vai jogar. Se mudar de orientação, o app avisa pra recalibrar.
 - Se mudar o layout da hotbar ou o tamanho da UI do Roblox, recalibre.
 - iPhone não tem equivalente sem jailbreak.
+
+## Modo teclas (anda sem travar)
+
+Nova opção na tela do app: **Keys mode for macro 3**. Em vez de tocar na tela, o macro 3 manda as teclas **3 → ESPAÇO → 1** como teclado pelo Shizuku. Como não injeta nenhum toque, o dedo no joystick não é derrubado.
+
+- Precisa do Shizuku rodando e conectado (**Connect Shizuku**).
+- Swipe da câmera e chute (que são toque) ficam de fora nesse modo, e o macro 3 não precisa de calibração.
+- O macro S continua usando toque.
+- Se nada acontecer no jogo, o Roblox/Delta pode não estar aceitando teclado injetado: aí avisa que a gente ajusta.

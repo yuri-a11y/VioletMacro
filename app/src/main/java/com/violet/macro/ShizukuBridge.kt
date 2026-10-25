@@ -10,7 +10,7 @@ import rikka.shizuku.Shizuku
 // Talks to the Shizuku app. The injector itself lives in Shizuku's shell process.
 object ShizukuBridge {
     private const val REQ = 4711
-    private const val SERVICE_VERSION = 1
+    private const val SERVICE_VERSION = 2
 
     @Volatile var injector: IInjector? = null
     @Volatile var info: String = ""

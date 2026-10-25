@@ -227,6 +227,17 @@ class MainActivity : Activity() {
             setOnCheckedChangeListener { _, on -> cfg.useShizuku = on }
         }
         cz.addView(swZ)
+        val swK = Switch(this).apply {
+            text = "Keys mode for macro 3 (3 → SPACE → 1 as keyboard, no touch)"
+            setTextColor(VC.TEXT)
+            isChecked = cfg.useKeys
+            setPadding(0, dp(16), 0, 0)
+            setOnCheckedChangeListener { _, on -> cfg.useKeys = on }
+        }
+        cz.addView(swK)
+        cz.addView(label("Keys mode needs Shizuku connected. It sends the keys 3, SPACE and 1 instead of tapping the screen, so walking is not interrupted. Camera swipe and kick are skipped in this mode, and macro 3 needs no calibration.", 11f, VC.DIM).apply {
+            setPadding(0, dp(4), 0, 0)
+        })
         root.addView(cz)
 
         val c3 = card()

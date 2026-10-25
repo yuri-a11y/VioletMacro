@@ -21,6 +21,7 @@ import android.os.SystemClock
 import android.util.DisplayMetrics
 import android.view.Gravity
 import android.view.HapticFeedbackConstants
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
@@ -285,6 +286,8 @@ class MacroService : AccessibilityService() {
         val now = SystemClock.uptimeMillis()
         if (now - lastFire < cfg.lockout) return
 
+        if (cfg.useKeys) { fireKeys(now); return }
+
         val (w, h) = screenSize()
         val cs = cfg.point("camStart")
         val ce = cfg.point("camEnd")
@@ -318,6 +321,42 @@ class MacroService : AccessibilityService() {
         if (cfg.useShizuku && inj == null) toast("Shizuku not connected, using accessibility")
         if (inj != null) runShizuku(inj, acts, w, h, lead)
         else handler.postDelayed({ step(acts, 0, w, h) }, lead)
+        count++
+        refreshLook()
+    }
+
+    // keys mode: slot 3 -> jump (SPACE) -> slot 1 as keyboard keys. No touch is injected, so the joystick
+    // finger is left alone. Needs Shizuku. Camera swipe and kick are touch-only and are skipped here.
+    private fun fireKeys(now: Long) {
+        val inj = ShizukuBridge.injector
+        if (inj == null) {
+            toast("Keys mode needs Shizuku connected (open the app, Connect Shizuku)")
+            return
+        }
+        lastFire = now
+        busy = true
+        busySince = now
+        val hold = cfg.keyHold
+        val d3 = cfg.delayAfter3.toLong()
+        val dj = cfg.delayJumpTo1.toLong()
+        val withSlot3 = cfg.tapSlot3
+        Thread {
+            var failed = 0
+            try {
+                if (withSlot3) {
+                    if (!inj.key(KeyEvent.KEYCODE_3, hold)) failed++
+                    if (d3 > 0) Thread.sleep(d3)
+                }
+                if (!inj.key(KeyEvent.KEYCODE_SPACE, hold)) failed++
+                if (dj > 0) Thread.sleep(dj)
+                if (!inj.key(KeyEvent.KEYCODE_1, hold)) failed++
+            } catch (t: Throwable) {
+                ShizukuBridge.injector = null
+                handler.post { toast("Shizuku service lost: ${t.javaClass.simpleName}") }
+            }
+            busy = false
+            if (failed > 0) handler.post { toast("Key injection failed on $failed key(s)") }
+        }.start()
         count++
         refreshLook()
     }
