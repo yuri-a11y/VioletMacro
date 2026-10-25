@@ -53,6 +53,7 @@ class MacroService : AccessibilityService() {
     private var count = 0
     private var lastFire = 0L
     @Volatile private var busy = false
+    @Volatile private var busySince = 0L
 
     val panelVisible: Boolean get() = panel != null
 
@@ -272,8 +273,14 @@ class MacroService : AccessibilityService() {
         counterView?.text = count.toString()
     }
 
+    // a lost callback must never leave the macro stuck busy
+    private fun isBusy(): Boolean {
+        if (busy && SystemClock.uptimeMillis() - busySince > 8000) busy = false
+        return busy
+    }
+
     private fun fire() {
-        if (!active || busy) return
+        if (!active || isBusy()) return
         val now = SystemClock.uptimeMillis()
         if (now - lastFire < cfg.lockout) return
 
@@ -305,6 +312,7 @@ class MacroService : AccessibilityService() {
         acts.add(Act(s1, null, hold, 0L))
         val lead = if (cfg.cameraSwipe || cfg.kickFirst || cfg.tapSlot3) 0L else cfg.delayAfter3.toLong()
         busy = true
+        busySince = SystemClock.uptimeMillis()
         handler.postDelayed({ step(acts, 0, w, h) }, lead)
         count++
         refreshLook()
@@ -312,7 +320,7 @@ class MacroService : AccessibilityService() {
 
     // Shidou: camera swipe up -> hold M1 -> slot 3 + jump (tight) -> technique mode -> slot 3 -> slot 2 + T together
     private fun fireShidou() {
-        if (!active || busy) return
+        if (!active || isBusy()) return
         val now = SystemClock.uptimeMillis()
         if (now - lastFire < cfg.lockout) return
 
@@ -352,12 +360,13 @@ class MacroService : AccessibilityService() {
             Act(s2, null, tap, 0L, tk)
         )
         busy = true
+        busySince = SystemClock.uptimeMillis()
         handler.post { step(acts, 0, w, h) }
         count++
         refreshLook()
     }
 
-    private fun step(acts: List<Act>, i: Int, w: Int, h: Int) {
+    private fun step(acts: List<Act>, i: Int, w: Int, h: Int, tries: Int = 0) {
         val a = acts[i]
         val end = a.to
         val path = Path().apply {
@@ -378,8 +387,13 @@ class MacroService : AccessibilityService() {
                 else busy = false
             }
             override fun onCancelled(d: GestureDescription?) {
-                busy = false
-                toast("Gesture cancelled by the system (finger on the screen?)")
+                // a real finger moving (the joystick) cancels injected gestures: try this step again
+                if (tries < cfg.retries) {
+                    handler.postDelayed({ step(acts, i, w, h, tries + 1) }, 3)
+                } else {
+                    busy = false
+                    toast("Gesture cancelled by the system (finger on the screen?)")
+                }
             }
         }, null)
         if (!ok) busy = false

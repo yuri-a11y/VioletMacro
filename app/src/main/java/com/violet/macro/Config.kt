@@ -64,6 +64,11 @@ class Config(ctx: Context) {
         get() = sp.getInt("delayAfterKick", 150)
         set(v) { sp.edit().putInt("delayAfterKick", v).apply() }
 
+    // redo a tap/swipe the system cancelled (a real finger moving on the screen cancels injected ones)
+    var retries: Int
+        get() = sp.getInt("retries", 8)
+        set(v) { sp.edit().putInt("retries", v).apply() }
+
     // Shidou macro: how long to hold M1, and the pause between steps
     var shHold: Int
         get() = sp.getInt("shHold", 50)

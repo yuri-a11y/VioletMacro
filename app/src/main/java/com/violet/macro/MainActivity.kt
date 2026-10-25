@@ -84,13 +84,13 @@ class MainActivity : Activity() {
         setOnClickListener { onClick() }
     }
 
-    private fun seek(parent: LinearLayout, name: String, min: Int, max: Int, get: () -> Int, set: (Int) -> Unit) {
+    private fun seek(parent: LinearLayout, name: String, min: Int, max: Int, get: () -> Int, set: (Int) -> Unit, unit: String = " ms") {
         val tv = TextView(this).apply {
             setTextColor(VC.TEXT)
             textSize = 13f
             setPadding(0, dp(12), 0, 0)
         }
-        fun upd(v: Int) { tv.text = "$name:  $v ms" }
+        fun upd(v: Int) { tv.text = "$name:  $v$unit" }
         upd(get())
         val sb = SeekBar(this).apply {
             this.max = max - min
@@ -148,6 +148,10 @@ class MainActivity : Activity() {
         seek(c2, "Delay after swipe", 0, 500, { cfg.delayAfterSwipe }, { cfg.delayAfterSwipe = it })
         seek(c2, "Delay after kick", 0, 1000, { cfg.delayAfterKick }, { cfg.delayAfterKick = it })
         seek(c2, "Lockout", 50, 1000, { cfg.lockout }, { cfg.lockout = it })
+        seek(c2, "Retries when cancelled", 0, 20, { cfg.retries }, { cfg.retries = it }, "")
+        c2.addView(label("Android cancels taps while a finger moves on the screen (walking). Retries try the same tap again.", 11f, VC.DIM).apply {
+            setPadding(0, dp(4), 0, 0)
+        })
         val swCam = Switch(this).apply {
             text = "Camera swipe first"
             setTextColor(VC.TEXT)
