@@ -62,6 +62,7 @@ class MacroService : AccessibilityService() {
         instance = this
         wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         cfg = Config(this)
+        ShizukuBridge.init(this)
         if (cfg.panelShown) showPanel()
     }
 
@@ -313,7 +314,10 @@ class MacroService : AccessibilityService() {
         val lead = if (cfg.cameraSwipe || cfg.kickFirst || cfg.tapSlot3) 0L else cfg.delayAfter3.toLong()
         busy = true
         busySince = SystemClock.uptimeMillis()
-        handler.postDelayed({ step(acts, 0, w, h) }, lead)
+        val inj = if (cfg.useShizuku) ShizukuBridge.injector else null
+        if (cfg.useShizuku && inj == null) toast("Shizuku not connected, using accessibility")
+        if (inj != null) runShizuku(inj, acts, w, h, lead)
+        else handler.postDelayed({ step(acts, 0, w, h) }, lead)
         count++
         refreshLook()
     }
@@ -364,6 +368,31 @@ class MacroService : AccessibilityService() {
         handler.post { step(acts, 0, w, h) }
         count++
         refreshLook()
+    }
+
+    // Shizuku backend: real input events from the system, so a finger on the joystick doesn't cancel them
+    private fun runShizuku(inj: IInjector, acts: List<Act>, w: Int, h: Int, lead: Long) {
+        Thread {
+            var failed = 0
+            try {
+                if (lead > 0) Thread.sleep(lead)
+                for (a in acts) {
+                    val end = a.to
+                    val ok = if (end != null) {
+                        inj.swipe(a.from.x * w, a.from.y * h, end.x * w, end.y * h, a.dur.toInt(), cfg.injDeviceId, cfg.injPointerId)
+                    } else {
+                        inj.tap(a.from.x * w, a.from.y * h, a.dur.toInt(), cfg.injDeviceId, cfg.injPointerId)
+                    }
+                    if (!ok) failed++
+                    if (a.gap > 0) Thread.sleep(a.gap)
+                }
+            } catch (t: Throwable) {
+                ShizukuBridge.injector = null
+                handler.post { toast("Shizuku service lost: ${t.javaClass.simpleName}") }
+            }
+            busy = false
+            if (failed > 0) handler.post { toast("Shizuku injection failed on $failed step(s)") }
+        }.start()
     }
 
     private fun step(acts: List<Act>, i: Int, w: Int, h: Int, tries: Int = 0) {

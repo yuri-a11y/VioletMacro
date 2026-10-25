@@ -23,10 +23,12 @@ class MainActivity : Activity() {
     private lateinit var cfg: Config
     private lateinit var status: TextView
     private lateinit var enableBtn: TextView
+    private lateinit var shizukuStatus: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         cfg = Config(this)
+        ShizukuBridge.init(this)
         window.decorView.setBackgroundColor(VC.BG)
         @Suppress("DEPRECATION")
         window.statusBarColor = VC.BG
@@ -43,6 +45,20 @@ class MainActivity : Activity() {
         status.text = if (on) "●  Service on" else "●  Service off"
         status.setTextColor(if (on) VC.GREEN else VC.ORANGE)
         enableBtn.visibility = if (on) View.GONE else View.VISIBLE
+        val (txt, good) = ShizukuBridge.status()
+        shizukuStatus.text = txt
+        shizukuStatus.setTextColor(if (good) VC.GREEN else VC.ORANGE)
+    }
+
+    private fun connectShizuku() {
+        ShizukuBridge.init(this)
+        when {
+            !ShizukuBridge.running() -> toast("Shizuku is not running. Start it in the Shizuku app first.")
+            !ShizukuBridge.granted() -> ShizukuBridge.requestPermission()
+            else -> ShizukuBridge.bind(this)
+        }
+        window.decorView.postDelayed({ refresh() }, 800)
+        window.decorView.postDelayed({ refresh() }, 2500)
     }
 
     private fun dp(v: Int) = (v * resources.displayMetrics.density + 0.5f).toInt()
@@ -194,6 +210,24 @@ class MainActivity : Activity() {
             setPadding(0, dp(10), 0, 0)
         })
         root.addView(cs)
+
+        val cz = card()
+        cz.addView(label("Shizuku mode (experimental)", 14f, VC.TEXT, true))
+        cz.addView(label("Sends the taps as system input instead of accessibility gestures, so a finger on the joystick doesn't cancel them. Needs the Shizuku app running. Applies to macro 3 only.", 11f, VC.DIM).apply {
+            setPadding(0, dp(4), 0, 0)
+        })
+        shizukuStatus = label("", 12f, VC.ORANGE).apply { setPadding(0, dp(10), 0, 0) }
+        cz.addView(shizukuStatus)
+        cz.addView(button("Connect Shizuku", false) { connectShizuku() })
+        val swZ = Switch(this).apply {
+            text = "Use Shizuku for macro 3"
+            setTextColor(VC.TEXT)
+            isChecked = cfg.useShizuku
+            setPadding(0, dp(16), 0, 0)
+            setOnCheckedChangeListener { _, on -> cfg.useShizuku = on }
+        }
+        cz.addView(swZ)
+        root.addView(cz)
 
         val c3 = card()
         c3.addView(label("How to use", 14f, VC.TEXT, true))
